@@ -51,9 +51,13 @@ int main()
 
         vector<vector<string>> foundInCache = SearchCache(cityCache, countryCode, cityName);
 
-        if (!foundInCache.empty())
+        if (foundInCache.empty())
         {
-            cout << "Found from cache:" << endl;
+            cout << "No cities found in cache with that city name and country code" << endl;
+        }
+        else
+        {
+            cout << "Found " << foundInCache.size() << " from cache:" << endl;
             for (vector<string> &curCity : foundInCache)
             {
                 cout << CityToString(curCity) << endl;
@@ -67,11 +71,18 @@ int main()
         citiesFound = FilterByCountry(citiesFound, countryCode);
         citiesFound = FilterByCity(citiesFound, cityName);
 
-        cout << "Found from file:" << endl;
-        for (vector<string> &curCity : citiesFound)
+        if (citiesFound.empty())
         {
-            cout << CityToString(curCity) << endl;
-            UpdateCache(cityCache, curCity);
+            cout << "No cities found with that city name and country code" << endl;
+        }
+        else
+        {
+            cout << "Found " << citiesFound.size() << " from file:" << endl;
+            for (vector<string> &curCity : citiesFound)
+            {
+                cout << CityToString(curCity) << endl;
+                UpdateCache(cityCache, curCity);
+            }
         }
 
         cout << endl;
