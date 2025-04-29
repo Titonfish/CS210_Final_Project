@@ -3,6 +3,7 @@
 #include "CSVReader.cpp"
 #include <queue>
 #include <unordered_map>
+#include <random>
 using namespace std;
 
 vector<vector<string>> FilterByCountry(const vector<vector<string>>& allCities, const string& countryCode);
@@ -16,6 +17,10 @@ void LFU_DisplayCache(const vector<string>& cacheKeys, unordered_map<string, pai
 void FIFO_UpdateCache(queue<vector<string>>& cache, const vector<string>& city);
 vector<vector<string>> FIFO_SearchCache(queue<vector<string>>& cache, const string& countryCode, const string& cityName);
 void FIFO_DisplayCache(queue<vector<string>> cache);
+
+void RAND_UpdateCache(vector<vector<string>>& cache, const vector<string>& city, mt19937& rand);
+vector<vector<string>> RAND_SearchCache(const vector<vector<string>>& cache, const string& countryCode, const string& cityName);
+void RAND_DisplayCache(vector<vector<string>>& cache);
 
 int main()
 {
@@ -61,6 +66,11 @@ int main()
     vector<string> lfu_cityCacheKeys {10};
     unordered_map<string, pair<vector<string>, pair<int, int>>> lfu_cityCache;
     queue<vector<string>> fifo_cityCache;
+    vector<vector<string>> rand_cityCache {10};
+
+    // Prepare a random device for random cache replacement
+    random_device rd;
+    mt19937 gen(rd());
 
     string userInput;
 
@@ -82,6 +92,10 @@ int main()
             {
                 FIFO_DisplayCache(fifo_cityCache);
             }
+            else
+            {
+                RAND_DisplayCache(rand_cityCache);
+            }
 
             cout << endl << endl;
             continue;
@@ -95,41 +109,34 @@ int main()
         cout << "What is the name of the city you are searching for?" << endl;
         getline(cin, cityName);
 
+        vector<vector<string>> foundInCache;
         if (cacheType == "lfu")
         {
-            if (vector<vector<string>> foundInCache = LFU_SearchCache(lfu_cityCacheKeys, lfu_cityCache, countryCode, cityName); foundInCache.empty())
-            {
-                cout << "No cities found in cache with that city name and country code" << endl;
-            }
-            else
-            {
-                cout << "Found " << foundInCache.size() << " from cache:" << endl;
-                for (vector<string> &curCity : foundInCache)
-                {
-                    cout << CityToString(curCity) << endl;
-                }
-                cout << endl;
-
-                continue;
-            }
+            foundInCache = LFU_SearchCache(lfu_cityCacheKeys, lfu_cityCache, countryCode, cityName);
         }
         else if (cacheType == "fifo")
         {
-            if (vector<vector<string>> foundInCache = FIFO_SearchCache(fifo_cityCache, countryCode, cityName); foundInCache.empty())
-            {
-                cout << "No cities found in cache with that city name and country code" << endl;
-            }
-            else
-            {
-                cout << "Found " << foundInCache.size() << " from cache:" << endl;
-                for (vector<string> &curCity : foundInCache)
-                {
-                    cout << CityToString(curCity) << endl;
-                }
-                cout << endl;
+            foundInCache = FIFO_SearchCache(fifo_cityCache, countryCode, cityName);
+        }
+        else
+        {
+            foundInCache = RAND_SearchCache(rand_cityCache, countryCode, cityName);
+        }
 
-                continue;
+        if (foundInCache.empty())
+        {
+            cout << "No cities found in cache with that city name and country code" << endl;
+        }
+        else
+        {
+            cout << "Found " << foundInCache.size() << " from cache:" << endl;
+            for (vector<string> &curCity : foundInCache)
+            {
+                cout << CityToString(curCity) << endl;
             }
+            cout << endl;
+
+            continue;
         }
 
         vector<vector<string>> citiesFound= CSVReader::readCSV(filePath);
@@ -154,6 +161,10 @@ int main()
                 else if (cacheType == "fifo")
                 {
                     FIFO_UpdateCache(fifo_cityCache, curCity);
+                }
+                else
+                {
+                    RAND_UpdateCache(rand_cityCache, curCity, gen);
                 }
             }
         }
@@ -195,7 +206,6 @@ string CityToString(const vector<string>& city)
 
 void LFU_UpdateCache(vector<string>& cacheKeys, unordered_map<string, pair<vector<string>, pair<int,int>>>& cache, const vector<string>& city)
 {
-
     int replaceIndex = 0;
     int minFreq = INT_MAX;
     int oldestTime = 0;
@@ -227,7 +237,7 @@ vector<vector<string>> LFU_SearchCache(const vector<string>& cacheKeys, unordere
     const unsigned int size = cacheKeys.size();
     for (int i = 0; i < size; i++)
     {
-        if (cacheKeys[i] == "")
+        if (cacheKeys[i].empty())
         {
             continue;
         }
@@ -307,5 +317,53 @@ void FIFO_DisplayCache(queue<vector<string>> cache)
 
         cache.pop();
         cache.push(curCity);
+    }
+}
+
+void RAND_UpdateCache(vector<vector<string>>& cache, const vector<string>& city, mt19937& rand)
+{
+    for (int i=0;i<10;i++)
+    {
+        if (cache[i].empty())
+        {
+            cache[i] = city;
+            return;
+        }
+    }
+
+    uniform_int_distribution distrib(0, 9);
+    const int replaceIndex = distrib(rand);
+
+    cache[replaceIndex] = city;
+}
+vector<vector<string>> RAND_SearchCache(const vector<vector<string>>& cache, const string& countryCode, const string& cityName)
+{
+    vector<vector<string>> foundCities;
+
+    for (int i = 0; i < 10; i++)
+    {
+        if (cache[i].empty())
+        {
+            continue;
+        }
+
+        if (cache[i][0] == countryCode && cache[i][1] == cityName)
+        {
+            foundCities.push_back(cache[i]);
+        }
+    }
+
+    return foundCities;
+}
+void RAND_DisplayCache(vector<vector<string>>& cache)
+{
+    for (const auto & curCity : cache)
+    {
+        if (curCity.empty())
+        {
+            continue;
+        }
+
+        cout << CityToString(curCity) << endl;
     }
 }
