@@ -3,4 +3,5 @@ project(WorldCities)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(WorldCities main.cpp)
+add_executable(WorldCities main.cpp
+        trie.cpp)

@@ -42,6 +42,17 @@ int main()
         filePath = inputFileName;
     }
 
+    // Choose if using a trie or not
+    string isTrie;
+    while (isTrie.empty())
+    {
+        cout << "Are you using a trie to store the data? (y,n) : ";
+        string trieInput;
+        getline(cin, trieInput);
+
+        isTrie = trieInput == "Y" || trieInput == "y";
+    }
+
     // Choose which cache type to use
     string cacheType;
     while (cacheType.empty())
@@ -138,7 +149,7 @@ int main()
 
             continue;
         }
-
+        
         vector<vector<string>> citiesFound= CSVReader::readCSV(filePath);
         citiesFound = FilterByCountry(citiesFound, countryCode);
         citiesFound = FilterByCity(citiesFound, cityName);
