@@ -1,26 +1,27 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
-
+#include <vector>
 using namespace std;
 
 struct TrieNode {
     bool isEndOfWord;
     unordered_map<char, TrieNode*> children;
+    vector<string> cityData{};
 
     TrieNode() : isEndOfWord(false) {}
 };
 
-class NameTrie {
+class CityTrie {
 private:
     TrieNode* root;
 
 public:
-    NameTrie() {
+    CityTrie() {
         root = new TrieNode();
     }
 
-    void insert(const string& name) {
+    void insert(const string& name, const vector<string>& cityData) {
         TrieNode* node = root;
         for (char c : name) {
             c = tolower(c); // Case-insensitive
@@ -29,17 +30,18 @@ public:
             node = node->children[c];
         }
         node->isEndOfWord = true;
+        node->cityData = cityData;
     }
 
-    bool search(const string& name) {
+    vector<string> search(const string& name) {
         TrieNode* node = root;
         for (char c : name) {
             c = tolower(c);
             if (node->children.count(c) == 0)
-                return false;
+                return vector<string>();
             node = node->children[c];
         }
-        return node->isEndOfWord;
+        return node->cityData;
     }
 
     void printTrie(TrieNode* node = nullptr, string prefix = "", string indent = "") {
@@ -51,18 +53,3 @@ public:
         }
     }
 };
-
-
-int main() {
-    NameTrie trie;
-
-    // Insert names
-    trie.insert("Saba");
-    trie.insert("Sam");
-    trie.insert("David");
-    trie.insert("Dave");
-
-    trie.printTrie();
-
-    return 0;
-}

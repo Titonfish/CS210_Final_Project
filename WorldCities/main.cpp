@@ -4,6 +4,7 @@
 #include <queue>
 #include <unordered_map>
 #include <random>
+#include "trie.cpp"
 using namespace std;
 
 vector<vector<string>> FilterByCountry(const vector<vector<string>>& allCities, const string& countryCode);
@@ -43,15 +44,13 @@ int main()
     }
 
     // Choose if using a trie or not
-    string isTrie;
-    while (isTrie.empty())
-    {
-        cout << "Are you using a trie to store the data? (y,n) : ";
-        string trieInput;
-        getline(cin, trieInput);
+    bool usingTrie;
 
-        isTrie = trieInput == "Y" || trieInput == "y";
-    }
+    cout << "Are you using a trie to store the data? (y,n) : ";
+    string trieInput;
+    getline(cin, trieInput);
+
+    usingTrie = trieInput == "Y" || trieInput == "y";
 
     // Choose which cache type to use
     string cacheType;
@@ -83,7 +82,20 @@ int main()
     random_device rd;
     mt19937 gen(rd());
 
+    // Set up the Trie in the case of using one
+    CityTrie cityTrie;
+
     string userInput;
+
+    if (usingTrie)
+    {
+        vector<vector<string>> allCities = CSVReader::readCSV(filePath);
+        for (auto city : allCities)
+        {
+            cityTrie.insert(city[1], city);
+        }
+        cout << "Loaded all cities into the trie" << endl << endl;
+    }
 
     while (true)
     {
@@ -149,10 +161,22 @@ int main()
 
             continue;
         }
-        
-        vector<vector<string>> citiesFound= CSVReader::readCSV(filePath);
-        citiesFound = FilterByCountry(citiesFound, countryCode);
-        citiesFound = FilterByCity(citiesFound, cityName);
+
+        vector<vector<string>> citiesFound;
+        if (usingTrie)
+        {
+            vector<string> cityFound = cityTrie.search(cityName);
+            if (!cityFound.empty())
+            {
+                citiesFound.push_back(cityFound);
+            }
+        }
+        else
+        {
+            citiesFound = CSVReader::readCSV(filePath);
+            citiesFound = FilterByCountry(citiesFound, countryCode);
+            citiesFound = FilterByCity(citiesFound, cityName);
+        }
 
         if (citiesFound.empty())
         {
