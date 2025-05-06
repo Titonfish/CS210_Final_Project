@@ -7,7 +7,7 @@ using namespace std;
 struct TrieNode {
     bool isEndOfWord;
     unordered_map<char, TrieNode*> children;
-    vector<string> cityData{};
+    vector<vector<string>> citiesData{};
 
     TrieNode() : isEndOfWord(false) {}
 };
@@ -30,18 +30,18 @@ public:
             node = node->children[c];
         }
         node->isEndOfWord = true;
-        node->cityData = cityData;
+        node->citiesData.push_back(cityData);
     }
 
-    vector<string> search(const string& name) {
+    vector<vector<string>> search(const string& name) {
         TrieNode* node = root;
         for (char c : name) {
             c = tolower(c);
             if (node->children.count(c) == 0)
-                return vector<string>();
+                return vector<vector<string>>();
             node = node->children[c];
         }
-        return node->cityData;
+        return node->citiesData;
     }
 
     void printTrie(TrieNode* node = nullptr, string prefix = "", string indent = "") {

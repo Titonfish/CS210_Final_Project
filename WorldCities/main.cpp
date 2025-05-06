@@ -127,8 +127,11 @@ int main()
         string countryCode;
         string cityName;
 
-        cout << "What is the country code of the city you are searching for?" << endl;
-        getline(cin, countryCode);
+        if (!usingTrie)
+        {
+            cout << "What is the country code of the city you are searching for?" << endl;
+            getline(cin, countryCode);
+        }
         cout << "What is the name of the city you are searching for?" << endl;
         getline(cin, cityName);
 
@@ -165,11 +168,7 @@ int main()
         vector<vector<string>> citiesFound;
         if (usingTrie)
         {
-            vector<string> cityFound = cityTrie.search(cityName);
-            if (!cityFound.empty())
-            {
-                citiesFound.push_back(cityFound);
-            }
+            citiesFound = cityTrie.search(cityName);
         }
         else
         {
